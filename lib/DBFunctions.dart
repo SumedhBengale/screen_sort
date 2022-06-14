@@ -1,9 +1,10 @@
 // ignore: file_names
 import 'globals.dart';
 
-Future<void> getData() async {
+Future<List<Map>> getData() async {
   list = await database.rawQuery('SELECT * FROM collections');
   print(list.length);
+  return list;
 }
 
 void createCollection(String name) async {
@@ -14,7 +15,7 @@ void createCollection(String name) async {
   });
 
   await database
-      .execute('CREATE TABLE $name (id INTEGER PRIMARY KEY, image_name TEXT)');
+      .execute('CREATE TABLE $name (id INTEGER PRIMARY KEY, file TEXT)');
 }
 
 void deleteTable(tableName) async {
@@ -24,6 +25,19 @@ void deleteTable(tableName) async {
   await database.execute('DROP TABLE $tableName');
   print("Delete");
   await getData();
+}
+
+void insertImage(String collection) async {
+  List x = await database.rawQuery('SELECT file from temp');
+  print(x);
+  var path = x[0]['file'];
+  print("PATH");
+  print(path);
+  if (path != "") {
+    await database.rawInsert('INSERT INTO $collection(file) VALUES("$path")');
+  }
+  path = '';
+  await database.rawDelete('DELETE FROM temp');
 }
 
 Future<String> tableExists(tableName) async {

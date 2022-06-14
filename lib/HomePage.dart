@@ -20,7 +20,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
-    getCollections();
+    getData();
     setState(() {});
     super.initState();
   }
@@ -28,53 +28,52 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body:
-          // Text("$list"),
-          // Text(list.length.toString()),
-          // TextField(controller: collection_name),
-          // OutlinedButton(
-          //     onPressed: () => {
-          //           Navigator.pop(context),
-          //         },
-          //     child: const Text("Back")),
-          // OutlinedButton(
-          //     onPressed: () {
-          //       insertData();
-          //     },
-          //     child: const Text("Insert Collection"))
-          Padding(
-              padding: const EdgeInsets.all(4),
-              child: GridView.builder(
-                  scrollDirection: Axis.vertical,
-                  shrinkWrap: true,
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: 200,
-                      childAspectRatio: 3 / 2,
-                      crossAxisSpacing: 20,
-                      mainAxisSpacing: 20),
-                  itemCount: list.length,
-                  itemBuilder: (BuildContext buildContext, index) {
-                    return GestureDetector(
-                      child: Container(
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                            color: Colors.amber,
-                            borderRadius: BorderRadius.circular(15)),
-                        child: Text(list[index]['collection_name']),
-                      ),
-                      onTap: () {
-                        var x = list[index]['collection_name'];
-                        String id = list[index]['id'].toString();
-                        String collectionName = list[index]['collection_name'];
-                        print("Clicked $x");
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    CollectionPage(id, collectionName)));
-                      },
-                    );
-                  })),
+      body: Padding(
+          padding: const EdgeInsets.all(4),
+          // ignore: sort_child_properties_last
+          child: FutureBuilder(
+              future: getData(),
+              builder:
+                  (BuildContext context, AsyncSnapshot<List<Map>> snapshot) {
+                if (snapshot.hasData) {
+                  return GridView.builder(
+                      scrollDirection: Axis.vertical,
+                      shrinkWrap: true,
+                      gridDelegate:
+                          const SliverGridDelegateWithMaxCrossAxisExtent(
+                              maxCrossAxisExtent: 200,
+                              childAspectRatio: 3 / 2,
+                              crossAxisSpacing: 20,
+                              mainAxisSpacing: 20),
+                      itemCount: snapshot.data?.length,
+                      itemBuilder: (BuildContext buildContext, index) {
+                        return GestureDetector(
+                          child: Container(
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                                color: Colors.amber,
+                                borderRadius: BorderRadius.circular(15)),
+                            child:
+                                Text(snapshot.data?[index]['collection_name']),
+                          ),
+                          onTap: () {
+                            var x = snapshot.data?[index]['collection_name'];
+                            int id = snapshot.data?[index]['id'];
+                            String collectionName =
+                                list[index]['collection_name'];
+                            print("Clicked $x");
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        CollectionPage(id, collectionName)));
+                          },
+                        );
+                      });
+                } else {
+                  return const CircularProgressIndicator();
+                }
+              })),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => {
           showDialog(

@@ -1,41 +1,65 @@
+import 'dart:io';
 import 'dart:isolate';
 
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:screen_sort/DBFunctions.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:watcher/watcher.dart';
+import 'package:path/path.dart' as p;
 
 String dbPath = '';
 late Database database;
 List<Map> list = [];
-late int openTimeStamp;
+late Watcher watcher;
+late int opentimestamp;
+late DateTime latestfiletimestamp;
+SendPort? _sendPort;
+ReceivePort? receivePort;
+int eventCount = 0;
+String latestFilePath = '';
+
+Future<void> initDB() async {
+  var databasesPath = await getDatabasesPath();
+  dbPath = p.join(databasesPath, 'screensort.db');
+  database = await openDatabase(dbPath, version: 1,
+      onCreate: (Database db, int version) async {
+    await db.execute(
+        'CREATE TABLE collections (id INTEGER PRIMARY KEY, collection_name TEXT)');
+    await db.execute(
+        'CREATE TABLE info (id INTEGER PRIMARY KEY, open_timestamp TEXT)');
+    await db.execute('CREATE TABLE temp (id INTEGER PRIMARY KEY, file TEXT)');
+  });
+}
 
 void getCollections() async {
+  await initDB();
   await getData();
 }
 
-// The callback function should always be a top-level function.
 void startCallback() {
-  // The setTaskHandler function must be called to handle the task in the background.
-  FlutterForegroundTask.setTaskHandler(FirstTaskHandler());
+  FlutterForegroundTask.setTaskHandler(MyTaskHandler());
 }
 
-class FirstTaskHandler extends TaskHandler {
-  SendPort? _sendPort;
-
+class MyTaskHandler extends TaskHandler {
   @override
   Future<void> onStart(DateTime timestamp, SendPort? sendPort) async {
     _sendPort = sendPort;
-
-    // You can use the getData function to get the stored data.
-    final customData =
-        await FlutterForegroundTask.getData<String>(key: 'customData');
-    print('customData: $customData');
+    startWatcher();
   }
 
   @override
   Future<void> onEvent(DateTime timestamp, SendPort? sendPort) async {
-    // Send data to the main isolate.
-    sendPort?.send(timestamp);
+    if (timestamp == latestfiletimestamp) {
+      FlutterForegroundTask.updateService(
+          notificationTitle: 'MyTaskHandler',
+          notificationText: 'eventCount: $eventCount');
+
+      // Send data to the main isolate.
+      sendPort?.send(eventCount);
+      eventCount++;
+      FlutterForegroundTask.launchApp("select-page");
+      _sendPort?.send('select-page');
+    }
   }
 
   @override
@@ -44,23 +68,23 @@ class FirstTaskHandler extends TaskHandler {
     await FlutterForegroundTask.clearAllData();
   }
 
-  @override
-  void onButtonPressed(String id) {
-    // Called when the notification button on the Android platform is pressed.
-    print('onButtonPressed >> $id');
-  }
-
-  @override
-  void onNotificationPressed() {
-    // Called when the notification itself on the Android platform is pressed.
-    //
-    // "android.permission.SYSTEM_ALERT_WINDOW" permission must be granted for
-    // this function to be called.
-
-    // Note that the app will only route to "/resume-route" when it is exited so
-    // it will usually be necessary to send a message through the send port to
-    // signal it to restore state when the app is already started.
-    FlutterForegroundTask.launchApp("/resume-route");
-    _sendPort?.send('onNotificationPressed');
+  Future<void> startWatcher() async {
+    var databasesPath = await getDatabasesPath();
+    dbPath = p.join(databasesPath, 'screensort.db');
+    database = await openDatabase(dbPath, version: 1);
+    List<Map> temp_list = await database.rawQuery("SELECT * FROM temp");
+    String ssPath = '/storage/emulated/0/DCIM/Screenshots';
+    var watcher = DirectoryWatcher(ssPath);
+    watcher.events.listen((event) async {
+      if (event.type.toString() == 'add') {
+        latestFilePath = event.path;
+        print(event.path);
+        print("Yes");
+        await database
+            .rawInsert('INSERT INTO temp(file) VALUES("$latestFilePath")');
+        latestfiletimestamp = DateTime.now();
+        onEvent(latestfiletimestamp, _sendPort);
+      }
+    });
   }
 }
