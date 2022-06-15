@@ -4,7 +4,6 @@ import 'package:screen_sort/CollectionName.dart';
 import 'package:screen_sort/DBFunctions.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as p;
-import 'CollectionPage.dart';
 import 'globals.dart';
 
 class SelectCollectionPage extends StatefulWidget {
@@ -62,11 +61,6 @@ class _SelectCollectionPageState extends State<SelectCollectionPage> {
                           onTap: () {
                             insertImage(
                                 snapshot.data?[index]['collection_name']);
-                            var x = snapshot.data?[index]['collection_name'];
-                            int id = snapshot.data?[index]['id'];
-                            String collectionName =
-                                list[index]['collection_name'];
-                            print("Clicked $x");
                             SystemNavigator.pop();
                           },
                         );

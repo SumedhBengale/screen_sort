@@ -40,6 +40,11 @@ void insertImage(String collection) async {
   await database.rawDelete('DELETE FROM temp');
 }
 
+void insertThisImage(String collection, String path) async {
+  await database.rawInsert('INSERT INTO $collection(file) VALUES("$path")');
+  print("Inserted");
+}
+
 Future<String> tableExists(tableName) async {
   try {
     List x = await database.rawQuery("SELECT * FROM $tableName");

@@ -1,9 +1,15 @@
+import 'dart:collection';
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:screen_sort/CollectionName.dart';
+import 'package:flutter/physics.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:open_file/open_file.dart';
 import 'package:screen_sort/globals.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+
+import 'DBFunctions.dart';
+import 'ViewImage.dart';
 
 class CollectionPage extends StatefulWidget {
   const CollectionPage(this.id, this.collectionName, {Key? key})
@@ -15,7 +21,57 @@ class CollectionPage extends StatefulWidget {
 }
 
 class _CollectionPageState extends State<CollectionPage> {
+  BannerAd? _anchoredAdaptiveAd;
+  bool _isLoaded = false;
+  final ImagePicker _picker = ImagePicker();
+
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _loadAd();
+  }
+
+  Future<void> _loadAd() async {
+    // Get an AnchoredAdaptiveBannerAdSize before loading the ad.
+    final AnchoredAdaptiveBannerAdSize? size =
+        await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
+            MediaQuery.of(context).size.width.truncate());
+
+    if (size == null) {
+      print('Unable to get height of anchored banner.');
+      return;
+    }
+
+    _anchoredAdaptiveAd = BannerAd(
+      // TODO: replace these test ad units with your own ad unit.
+      adUnitId: 'ca-app-pub-3940256099942544/6300978111',
+      size: size,
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (Ad ad) {
+          print('$ad loaded: ${ad.responseInfo}');
+          setState(() {
+            // When the ad is loaded, get the ad size and use it to set
+            // the height of the ad container.
+            _anchoredAdaptiveAd = ad as BannerAd;
+            _isLoaded = true;
+          });
+        },
+        onAdFailedToLoad: (Ad ad, LoadAdError error) {
+          print('Anchored adaptive banner failedToLoad: $error');
+          ad.dispose();
+        },
+      ),
+    );
+    return _anchoredAdaptiveAd!.load();
+  }
+
+  @override
+  void dispose() {
+    _anchoredAdaptiveAd?.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     late List<Map> currentCollection;
@@ -23,35 +79,79 @@ class _CollectionPageState extends State<CollectionPage> {
     Future<List<Map>> collectionData() async {
       currentCollection =
           await database.rawQuery('SELECT * FROM $thisCollection');
-      return currentCollection;
+      print(currentCollection);
+      print(currentCollection.reversed.toList());
+      return currentCollection.reversed.toList();
     }
 
     return Scaffold(
+      backgroundColor: Colors.lightBlue,
+      appBar: AppBar(
+        actions: [
+          Padding(
+              padding: const EdgeInsets.only(right: 20.0),
+              child: GestureDetector(
+                onTap: () async {
+                  isFilePickerActive = true;
+                  final XFile? image =
+                      await _picker.pickImage(source: ImageSource.gallery);
+                  insertThisImage(thisCollection, image!.path);
+                  isFilePickerActive = false;
+                  setState(() {});
+                },
+                child: const Icon(
+                  Icons.add_a_photo_rounded,
+                  size: 26.0,
+                ),
+              )),
+        ],
+        title: Text(thisCollection),
+      ),
       body: FutureBuilder(
           future: collectionData(),
           builder: (BuildContext context, AsyncSnapshot<List<Map>> snapshot) {
             if (snapshot.hasData) {
-              return Center(
-                  child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(widget.id.toString()),
-                  Text(widget.collectionName),
-                  Container(
-                      child: ListView.builder(
+              return Padding(
+                  padding: const EdgeInsets.only(left: 10, right: 10),
+                  child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: MasonryGridView.extent(
+                          padding: const EdgeInsets.only(top: 10, bottom: 10),
+                          maxCrossAxisExtent: 200,
                           shrinkWrap: true,
+                          scrollDirection: Axis.vertical,
+                          physics: const BouncingScrollPhysics(),
+                          mainAxisSpacing: 10,
+                          crossAxisSpacing: 10,
                           itemCount: snapshot.data?.length,
-                          itemBuilder: (context, index) {
-                            return ListTile(
-                                title:
-                                    Text(currentCollection[index].toString()));
-                          }))
-                ],
-              ));
+                          itemBuilder: (context, index) => GestureDetector(
+                              onLongPress: () {},
+                              onTap: () {
+                                String path =
+                                    snapshot.data![index]['file'].toString();
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => ViewImage(path)));
+                              },
+                              child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  child: Image.file(
+                                      File(snapshot.data![index]['file']
+                                          .toString()),
+                                      fit: BoxFit.fitWidth))))));
             } else {
               return const CircularProgressIndicator();
             }
           }),
+      bottomSheet: (_anchoredAdaptiveAd != null && _isLoaded)
+          ? Container(
+              color: Colors.white,
+              width: _anchoredAdaptiveAd!.size.width.toDouble(),
+              height: _anchoredAdaptiveAd!.size.height.toDouble(),
+              child: AdWidget(ad: _anchoredAdaptiveAd!),
+            )
+          : Container(height: 0),
     );
   }
 }

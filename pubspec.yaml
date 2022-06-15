@@ -27,10 +27,14 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
-  flutter_background: ^1.1.0
+  flutter_staggered_grid_view: ^0.6.1
   flutter_foreground_task: ^3.7.3
   permission_handler: ^9.2.0
-  intl: ^0.17.0
+  google_mobile_ads: ^1.2.0
+  image_picker: ^0.8.5+3
+  photo_view: ^0.14.0
+  share_plus: ^4.0.8
+  open_file: ^3.2.1
   sqflite: ^2.0.2+1
   watcher: ^1.0.1
   flutter:

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:screen_sort/DBFunctions.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:watcher/watcher.dart';
@@ -17,6 +18,7 @@ SendPort? _sendPort;
 ReceivePort? receivePort;
 int eventCount = 0;
 String latestFilePath = '';
+bool isFilePickerActive = false;
 
 Future<void> initDB() async {
   var databasesPath = await getDatabasesPath();

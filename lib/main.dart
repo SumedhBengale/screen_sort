@@ -2,6 +2,7 @@ import 'dart:isolate';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:screen_sort/SelectCollectionPage.dart';
 import 'package:screen_sort/globals.dart';
@@ -10,6 +11,7 @@ import 'HomePage.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  MobileAds.instance.initialize();
   await initDB();
   runApp(const ExampleApp());
 }
@@ -22,7 +24,7 @@ class ExampleApp extends StatelessWidget {
     return MaterialApp(
       initialRoute: '/',
       routes: {
-        '/': (context) => const ExamplePage(),
+        '/': (context) => const HomePage(),
         'select-page': (context) => const SelectCollectionPage(),
       },
     );
@@ -36,122 +38,15 @@ class ExamplePage extends StatefulWidget {
   State<StatefulWidget> createState() => _ExamplePageState();
 }
 
-class _ExamplePageState extends State<ExamplePage> with WidgetsBindingObserver {
-  ReceivePort? _receivePort;
-
-  Future<void> _initForegroundTask() async {
-    await FlutterForegroundTask.init(
-      androidNotificationOptions: AndroidNotificationOptions(
-        channelId: 'notification_channel_id',
-        channelName: 'Foreground Notification',
-        channelDescription:
-            'This notification appears when the foreground service is running.',
-        channelImportance: NotificationChannelImportance.LOW,
-        priority: NotificationPriority.LOW,
-        iconData: const NotificationIconData(
-          resType: ResourceType.mipmap,
-          resPrefix: ResourcePrefix.ic,
-          name: 'launcher',
-          backgroundColor: Colors.orange,
-        ),
-      ),
-      foregroundTaskOptions: const ForegroundTaskOptions(
-        interval: 1000000000000000000,
-        autoRunOnBoot: true,
-        allowWifiLock: true,
-      ),
-      printDevLog: true,
-    );
-  }
-
-  Future<bool> _startForegroundTask() async {
-    if (await Permission.storage.status.isGranted) {
-      if (!await FlutterForegroundTask.canDrawOverlays) {
-        final isGranted =
-            await FlutterForegroundTask.openSystemAlertWindowSettings();
-        if (!isGranted) {
-          print('SYSTEM_ALERT_WINDOW permission denied!');
-          return false;
-        }
-      }
-    } else {
-      await Permission.storage.request();
-      _startForegroundTask();
-    }
-    if (await FlutterForegroundTask.isRunningService) {
-      receivePort = await FlutterForegroundTask.restartService();
-    } else {
-      receivePort = await FlutterForegroundTask.startService(
-        notificationTitle: 'Foreground Service is running',
-        notificationText: 'Tap to return to the app',
-        callback: startCallback,
-      );
-    }
-    return _registerReceivePort(receivePort);
-  }
-
-  Future<bool> _stopForegroundTask() async {
-    return await FlutterForegroundTask.stopService();
-  }
-
-  bool _registerReceivePort(ReceivePort? receivePort) {
-    _closeReceivePort();
-    if (receivePort != null) {
-      _receivePort = receivePort;
-      _receivePort?.listen((message) {
-        if (message is int) {
-          print('eventCount: $message');
-        } else if (message is String) {
-          if (message == 'select-page') {
-            print("SS Taken");
-            Navigator.of(context).pushNamed('select-page');
-          }
-        } else if (message is DateTime) {
-          print('timestamp: ${message.toString()}');
-        }
-      });
-      return true;
-    }
-    return false;
-  }
-
-  void _closeReceivePort() {
-    _receivePort?.close();
-    _receivePort = null;
-  }
-
-  T? _ambiguate<T>(T? value) => value;
-
+class _ExamplePageState extends State<ExamplePage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _initForegroundTask();
-    _ambiguate(WidgetsBinding.instance)?.addPostFrameCallback((_) async {
-      // You can get the previous ReceivePort without restarting the service.
-      if (await FlutterForegroundTask.isRunningService) {
-        final newReceivePort = await FlutterForegroundTask.receivePort;
-        _registerReceivePort(newReceivePort);
-      }
-    });
   }
 
   @override
   void dispose() {
-    _closeReceivePort();
-    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    switch (state) {
-      case AppLifecycleState.paused:
-        SystemNavigator.pop();
-        break;
-      default:
-        break;
-    }
   }
 
   @override
