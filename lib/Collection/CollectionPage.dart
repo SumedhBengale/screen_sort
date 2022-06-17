@@ -8,7 +8,7 @@ import 'package:open_file/open_file.dart';
 import 'package:screen_sort/globals.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
-import 'DBFunctions.dart';
+import '../DBFunctions.dart';
 import 'ViewImage.dart';
 
 class CollectionPage extends StatefulWidget {
@@ -24,6 +24,8 @@ class _CollectionPageState extends State<CollectionPage> {
   BannerAd? _anchoredAdaptiveAd;
   bool _isLoaded = false;
   final ImagePicker _picker = ImagePicker();
+  double _scaleFactor = 150;
+  double _baseScaleFactor = 1.0;
 
   @override
   void didChangeDependencies() {
@@ -43,8 +45,7 @@ class _CollectionPageState extends State<CollectionPage> {
     }
 
     _anchoredAdaptiveAd = BannerAd(
-      // TODO: replace these test ad units with your own ad unit.
-      adUnitId: 'ca-app-pub-3940256099942544/6300978111',
+      adUnitId: 'ca-app-pub-4664789967062460/9484065555',
       size: size,
       request: const AdRequest(),
       listener: BannerAdListener(
@@ -85,8 +86,18 @@ class _CollectionPageState extends State<CollectionPage> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.lightBlue,
+      backgroundColor: (serviceActive)
+          ? ColorScheme.fromSeed(seedColor: Colors.red).primaryContainer
+          : ColorScheme.fromSeed(seedColor: Colors.teal).primaryContainer,
       appBar: AppBar(
+        backgroundColor: (serviceActive)
+            ? ColorScheme.fromSeed(seedColor: Colors.pink).primary
+            : ColorScheme.fromSeed(seedColor: Colors.teal).primary,
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(20),
+                bottomRight: Radius.circular(20))),
+        elevation: 5,
         actions: [
           Padding(
               padding: const EdgeInsets.only(right: 20.0),
@@ -107,43 +118,55 @@ class _CollectionPageState extends State<CollectionPage> {
         ],
         title: Text(thisCollection),
       ),
-      body: FutureBuilder(
-          future: collectionData(),
-          builder: (BuildContext context, AsyncSnapshot<List<Map>> snapshot) {
-            if (snapshot.hasData) {
-              return Padding(
-                  padding: const EdgeInsets.only(left: 10, right: 10),
-                  child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      child: MasonryGridView.extent(
-                          padding: const EdgeInsets.only(top: 10, bottom: 10),
-                          maxCrossAxisExtent: 200,
-                          shrinkWrap: true,
-                          scrollDirection: Axis.vertical,
+      body: GestureDetector(
+          onScaleStart: (details) {
+            _baseScaleFactor = _scaleFactor;
+          },
+          onScaleUpdate: (details) {
+            setState(() {
+              _scaleFactor = _baseScaleFactor * details.scale;
+            });
+          },
+          child: FutureBuilder(
+              future: collectionData(),
+              builder:
+                  (BuildContext context, AsyncSnapshot<List<Map>> snapshot) {
+                if (snapshot.hasData) {
+                  return Padding(
+                      padding: const EdgeInsets.only(left: 10, right: 10),
+                      child: SingleChildScrollView(
                           physics: const BouncingScrollPhysics(),
-                          mainAxisSpacing: 10,
-                          crossAxisSpacing: 10,
-                          itemCount: snapshot.data?.length,
-                          itemBuilder: (context, index) => GestureDetector(
-                              onLongPress: () {},
-                              onTap: () {
-                                String path =
-                                    snapshot.data![index]['file'].toString();
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => ViewImage(path)));
-                              },
-                              child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8.0),
-                                  child: Image.file(
-                                      File(snapshot.data![index]['file']
-                                          .toString()),
-                                      fit: BoxFit.fitWidth))))));
-            } else {
-              return const CircularProgressIndicator();
-            }
-          }),
+                          child: MasonryGridView.extent(
+                              padding:
+                                  const EdgeInsets.only(top: 10, bottom: 10),
+                              maxCrossAxisExtent: _scaleFactor,
+                              shrinkWrap: true,
+                              scrollDirection: Axis.vertical,
+                              physics: const BouncingScrollPhysics(),
+                              mainAxisSpacing: 10,
+                              crossAxisSpacing: 10,
+                              itemCount: snapshot.data?.length,
+                              itemBuilder: (context, index) => GestureDetector(
+                                  onLongPress: () {},
+                                  onTap: () {
+                                    String path = snapshot.data![index]['file']
+                                        .toString();
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                ViewImage(path)));
+                                  },
+                                  child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      child: Image.file(
+                                          File(snapshot.data![index]['file']
+                                              .toString()),
+                                          fit: BoxFit.fitWidth))))));
+                } else {
+                  return const CircularProgressIndicator();
+                }
+              })),
       bottomSheet: (_anchoredAdaptiveAd != null && _isLoaded)
           ? Container(
               color: Colors.white,

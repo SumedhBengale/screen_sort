@@ -18,7 +18,7 @@ void createCollection(String name) async {
       .execute('CREATE TABLE $name (id INTEGER PRIMARY KEY, file TEXT)');
 }
 
-void deleteTable(tableName) async {
+void deleteCollection(tableName) async {
   await database.delete('collections',
       where: 'collection_name = ?', whereArgs: [tableName]);
 
