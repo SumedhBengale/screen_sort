@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/screen_sort.iml" filepath="$PROJECT_DIR$/screen_sort.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ScreenSort.iml" filepath="$PROJECT_DIR$/ScreenSort.iml" />
       <module fileurl="file://$PROJECT_DIR$/android/screen_sort_android.iml" filepath="$PROJECT_DIR$/android/screen_sort_android.iml" />
     </modules>
   </component>

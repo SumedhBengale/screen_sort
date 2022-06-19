@@ -1,4 +1,4 @@
-# screen_sort
+# ScreenSort
 
 A new Flutter project.
 

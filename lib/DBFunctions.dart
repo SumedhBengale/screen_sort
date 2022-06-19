@@ -14,8 +14,8 @@ void createCollection(String name) async {
     print('inserted1: $id1');
   });
 
-  await database
-      .execute('CREATE TABLE $name (id INTEGER PRIMARY KEY, file TEXT)');
+  await database.execute(
+      'CREATE TABLE $name (id INTEGER PRIMARY KEY, name TEXT, path TEXT, datetime TEXT)');
 }
 
 void deleteCollection(tableName) async {
@@ -28,21 +28,29 @@ void deleteCollection(tableName) async {
 }
 
 void insertImage(String collection) async {
-  List x = await database.rawQuery('SELECT file from temp');
-  print(x);
-  var path = x[0]['file'];
+  List x = await database.rawQuery('SELECT * from temp');
+  var name = x[0]['name'];
+  var path = x[0]['path'];
+  var datetime = x[0]['datetime'];
   print("PATH");
   print(path);
   if (path != "") {
-    await database.rawInsert('INSERT INTO $collection(file) VALUES("$path")');
+    await database.rawInsert(
+        'INSERT INTO $collection(name,path,datetime) VALUES("$name","$path","$datetime")');
   }
   path = '';
   await database.rawDelete('DELETE FROM temp');
 }
 
-void insertThisImage(String collection, String path) async {
-  await database.rawInsert('INSERT INTO $collection(file) VALUES("$path")');
-  print("Inserted");
+// void insertThisImage(
+//     String collection, String name, String path, String datetime) async {
+//   await database.rawInsert(
+//       'INSERT INTO $collection(name,path,datetime) VALUES("$name","$path","$datetime")');
+//   print("Inserted");
+// }
+
+void removeFromCollection(String collection, String path) async {
+  await database.rawDelete('DELETE FROM $collection where path="$path"');
 }
 
 Future<String> tableExists(tableName) async {

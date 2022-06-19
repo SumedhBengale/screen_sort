@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:screen_sort/HomePage/CollectionName.dart';
-import 'package:screen_sort/DBFunctions.dart';
+import 'package:ScreenSort/HomePage/CollectionName.dart';
+import 'package:ScreenSort/DBFunctions.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as p;
 import '../globals.dart';
@@ -43,8 +43,6 @@ class _SelectCollectionPageState extends State<SelectCollectionPage> {
         onAdLoaded: (Ad ad) {
           print('$ad loaded: ${ad.responseInfo}');
           setState(() {
-            // When the ad is loaded, get the ad size and use it to set
-            // the height of the ad container.
             _anchoredAdaptiveAd = ad as BannerAd;
             _isLoaded = true;
           });
@@ -81,12 +79,12 @@ class _SelectCollectionPageState extends State<SelectCollectionPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: (serviceActive)
-          ? ColorScheme.fromSeed(seedColor: Colors.pink).primaryContainer
-          : ColorScheme.fromSeed(seedColor: Colors.teal).primaryContainer,
+          ? ColorScheme.fromSeed(seedColor: Colors.teal).primaryContainer
+          : ColorScheme.fromSeed(seedColor: Colors.pink).primaryContainer,
       appBar: AppBar(
         backgroundColor: (serviceActive)
-            ? ColorScheme.fromSeed(seedColor: Colors.pink).primary
-            : ColorScheme.fromSeed(seedColor: Colors.teal).primary,
+            ? ColorScheme.fromSeed(seedColor: Colors.teal).primary
+            : ColorScheme.fromSeed(seedColor: Colors.pink).primary,
         shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(20),
@@ -124,45 +122,50 @@ class _SelectCollectionPageState extends State<SelectCollectionPage> {
               builder:
                   (BuildContext context, AsyncSnapshot<List<Map>> snapshot) {
                 if (snapshot.hasData) {
-                  return GridView.builder(
-                      scrollDirection: Axis.vertical,
-                      shrinkWrap: true,
-                      gridDelegate:
-                          const SliverGridDelegateWithMaxCrossAxisExtent(
-                              maxCrossAxisExtent: 150,
-                              childAspectRatio: 0.9,
-                              crossAxisSpacing: 20,
-                              mainAxisSpacing: 20),
-                      itemCount: snapshot.data?.length,
-                      itemBuilder: (BuildContext buildContext, index) {
-                        return GestureDetector(
-                          child: Column(
-                            children: [
-                              Icon(
-                                Icons.folder,
-                                size: 90,
-                                color: (serviceActive)
-                                    ? ColorScheme.fromSeed(
-                                            seedColor: Colors.pink)
-                                        .primary
-                                    : ColorScheme.fromSeed(
-                                            seedColor: Colors.teal)
-                                        .primary,
+                  return (snapshot.data!.length > 0)
+                      ? GridView.builder(
+                          scrollDirection: Axis.vertical,
+                          shrinkWrap: true,
+                          gridDelegate:
+                              const SliverGridDelegateWithMaxCrossAxisExtent(
+                                  maxCrossAxisExtent: 150,
+                                  childAspectRatio: 0.9,
+                                  crossAxisSpacing: 20,
+                                  mainAxisSpacing: 20),
+                          itemCount: snapshot.data?.length,
+                          itemBuilder: (BuildContext buildContext, index) {
+                            return GestureDetector(
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    Icons.folder,
+                                    size: 90,
+                                    color: (serviceActive)
+                                        ? ColorScheme.fromSeed(
+                                                seedColor: Colors.teal)
+                                            .primary
+                                        : ColorScheme.fromSeed(
+                                                seedColor: Colors.pink)
+                                            .primary,
+                                  ),
+                                  Center(
+                                      child: Text(
+                                    snapshot.data?[index]['collection_name'],
+                                    overflow: TextOverflow.ellipsis,
+                                  )),
+                                ],
                               ),
-                              Center(
-                                  child: Text(
-                                snapshot.data?[index]['collection_name'],
-                                overflow: TextOverflow.ellipsis,
-                              )),
-                            ],
-                          ),
-                          onTap: () {
-                            insertImage(
-                                snapshot.data?[index]['collection_name']);
-                            SystemNavigator.pop();
-                          },
-                        );
-                      });
+                              onTap: () {
+                                insertImage(
+                                    snapshot.data?[index]['collection_name']);
+                                SystemNavigator.pop();
+                              },
+                            );
+                          })
+                      : Expanded(
+                          child: Center(
+                              child: Image.asset(
+                                  'assets/no_collection_found_select.png')));
                 } else {
                   return const CircularProgressIndicator();
                 }

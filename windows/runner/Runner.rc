@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "screen_sort" "\0"
+            VALUE "CompanyName", "com.ssb" "\0"
+            VALUE "FileDescription", "ScreenSort" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "screen_sort" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2022 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "screen_sort.exe" "\0"
-            VALUE "ProductName", "screen_sort" "\0"
+            VALUE "InternalName", "ScreenSort" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2022 com.ssb. All rights reserved." "\0"
+            VALUE "OriginalFilename", "ScreenSort.exe" "\0"
+            VALUE "ProductName", "ScreenSort" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

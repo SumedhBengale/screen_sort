@@ -1,6 +1,6 @@
 {
-    "name": "screen_sort",
-    "short_name": "screen_sort",
+    "name": "ScreenSort",
+    "short_name": "ScreenSort",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

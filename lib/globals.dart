@@ -1,7 +1,8 @@
+import 'dart:io';
 import 'dart:isolate';
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
-import 'package:screen_sort/DBFunctions.dart';
+import 'package:ScreenSort/DBFunctions.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:watcher/watcher.dart';
 // ignore: depend_on_referenced_packages
@@ -15,7 +16,6 @@ late int opentimestamp;
 late DateTime latestfiletimestamp;
 SendPort? _sendPort;
 ReceivePort? receivePort;
-int eventCount = 0;
 String latestFilePath = '';
 bool isFilePickerActive = false;
 bool isAskingPermissions = false;
@@ -30,7 +30,8 @@ Future<void> initDB() async {
         'CREATE TABLE collections (id INTEGER PRIMARY KEY, collection_name TEXT)');
     await db.execute(
         'CREATE TABLE info (id INTEGER PRIMARY KEY, open_timestamp TEXT)');
-    await db.execute('CREATE TABLE temp (id INTEGER PRIMARY KEY, file TEXT)');
+    await db.execute(
+        'CREATE TABLE temp (id INTEGER PRIMARY KEY, name TEXT, path TEXT, datetime TEXT)');
   });
 }
 
@@ -54,12 +55,9 @@ class MyTaskHandler extends TaskHandler {
   Future<void> onEvent(DateTime timestamp, SendPort? sendPort) async {
     if (timestamp == latestfiletimestamp) {
       FlutterForegroundTask.updateService(
-          notificationTitle: 'MyTaskHandler',
-          notificationText: 'eventCount: $eventCount');
+          notificationTitle: 'ScreenSort',
+          notificationText: 'File Watching Service');
 
-      // Send data to the main isolate.
-      sendPort?.send(eventCount);
-      eventCount++;
       FlutterForegroundTask.launchApp("select-page");
       _sendPort?.send('select-page');
     }
@@ -80,11 +78,14 @@ class MyTaskHandler extends TaskHandler {
     var watcher = DirectoryWatcher(ssPath);
     watcher.events.listen((event) async {
       if (event.type.toString() == 'add') {
+        var latestFileName = p.basename(event.path);
         latestFilePath = event.path;
+        var latestFileDateTime =
+            FileStat.statSync(event.path).modified.toString();
         print(event.path);
         print("Yes");
-        await database
-            .rawInsert('INSERT INTO temp(file) VALUES("$latestFilePath")');
+        await database.rawInsert(
+            'INSERT INTO temp(name, path, datetime) VALUES("$latestFileName","$latestFilePath","$latestFileDateTime")');
         latestfiletimestamp = DateTime.now();
         onEvent(latestfiletimestamp, _sendPort);
       }

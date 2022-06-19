@@ -1,7 +1,7 @@
 // ignore: file_names
 import 'package:flutter/material.dart';
-import 'package:screen_sort/DBFunctions.dart';
-import 'package:screen_sort/globals.dart';
+import 'package:ScreenSort/DBFunctions.dart';
+import 'package:ScreenSort/globals.dart';
 import 'package:sqflite/sqflite.dart';
 import '../DBFunctions.dart';
 import '../main.dart' as main;
@@ -13,7 +13,7 @@ class CollectionName extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final alphabets = RegExp(r"^[\p{L} ,.'-]*$",
+    final alphabets = RegExp(r"^[\p{L}]*$",
         caseSensitive: false, unicode: true, dotAll: true);
 
     TextEditingController collectionName = TextEditingController();
@@ -22,8 +22,8 @@ class CollectionName extends StatelessWidget {
       shape: RoundedRectangleBorder(
           side: BorderSide(
             color: (serviceActive)
-                ? ColorScheme.fromSeed(seedColor: Colors.pink).primaryContainer
-                : ColorScheme.fromSeed(seedColor: Colors.teal).primaryContainer,
+                ? ColorScheme.fromSeed(seedColor: Colors.teal).primaryContainer
+                : ColorScheme.fromSeed(seedColor: Colors.pink).primaryContainer,
           ),
           borderRadius: BorderRadius.circular(15)),
       elevation: 16,
@@ -49,9 +49,9 @@ class CollectionName extends StatelessWidget {
                       focusedBorder: OutlineInputBorder(
                           borderSide: BorderSide(
                         color: (serviceActive)
-                            ? ColorScheme.fromSeed(seedColor: Colors.red)
+                            ? ColorScheme.fromSeed(seedColor: Colors.teal)
                                 .primary
-                            : ColorScheme.fromSeed(seedColor: Colors.teal)
+                            : ColorScheme.fromSeed(seedColor: Colors.pink)
                                 .primary,
                       )),
                       hintText: 'Name',
@@ -82,16 +82,59 @@ class CollectionName extends StatelessWidget {
                                     else
                                       {
                                         ScaffoldMessenger.of(context)
-                                            .showSnackBar(const SnackBar(
+                                            .showSnackBar(SnackBar(
+                                          backgroundColor: (serviceActive)
+                                              ? ColorScheme.fromSeed(
+                                                      seedColor: Colors.teal)
+                                                  .primary
+                                              : ColorScheme.fromSeed(
+                                                      seedColor: Colors.pink)
+                                                  .primary,
+                                          shape: RoundedRectangleBorder(
+                                              side: BorderSide(
+                                                color: (serviceActive)
+                                                    ? ColorScheme.fromSeed(
+                                                            seedColor:
+                                                                Colors.teal)
+                                                        .primary
+                                                    : ColorScheme.fromSeed(
+                                                            seedColor:
+                                                                Colors.pink)
+                                                        .primary,
+                                              ),
+                                              borderRadius: BorderRadius.only(
+                                                  topLeft: Radius.circular(20),
+                                                  topRight:
+                                                      Radius.circular(20))),
                                           content: Text(
-                                              'The Collection already exists.'),
+                                              'Only Alphabets are allowed.'),
                                         ))
                                       }
                                   }
                                 else
                                   {
                                     ScaffoldMessenger.of(context)
-                                        .showSnackBar(const SnackBar(
+                                        .showSnackBar(SnackBar(
+                                      backgroundColor: (serviceActive)
+                                          ? ColorScheme.fromSeed(
+                                                  seedColor: Colors.teal)
+                                              .primary
+                                          : ColorScheme.fromSeed(
+                                                  seedColor: Colors.pink)
+                                              .primary,
+                                      shape: RoundedRectangleBorder(
+                                          side: BorderSide(
+                                            color: (serviceActive)
+                                                ? ColorScheme.fromSeed(
+                                                        seedColor: Colors.teal)
+                                                    .primary
+                                                : ColorScheme.fromSeed(
+                                                        seedColor: Colors.pink)
+                                                    .primary,
+                                          ),
+                                          borderRadius: BorderRadius.only(
+                                              topLeft: Radius.circular(20),
+                                              topRight: Radius.circular(20))),
                                       content:
                                           Text('Only Alphabets are allowed.'),
                                     ))
@@ -100,18 +143,38 @@ class CollectionName extends StatelessWidget {
                             else
                               {
                                 ScaffoldMessenger.of(context)
-                                    .showSnackBar(const SnackBar(
+                                    .showSnackBar(SnackBar(
+                                  backgroundColor: (serviceActive)
+                                      ? ColorScheme.fromSeed(
+                                              seedColor: Colors.teal)
+                                          .primary
+                                      : ColorScheme.fromSeed(
+                                              seedColor: Colors.pink)
+                                          .primary,
+                                  shape: RoundedRectangleBorder(
+                                      side: BorderSide(
+                                        color: (serviceActive)
+                                            ? ColorScheme.fromSeed(
+                                                    seedColor: Colors.teal)
+                                                .primary
+                                            : ColorScheme.fromSeed(
+                                                    seedColor: Colors.pink)
+                                                .primary,
+                                      ),
+                                      borderRadius: BorderRadius.only(
+                                          topLeft: Radius.circular(20),
+                                          topRight: Radius.circular(20))),
                                   content: Text(
-                                      'Please Enter a Name for the Collection'),
+                                      'Please enter a name for the Collection.'),
                                 ))
                               }
                           },
                       style: ButtonStyle(
                           backgroundColor: MaterialStateProperty.all<Color>(
                         (serviceActive)
-                            ? ColorScheme.fromSeed(seedColor: Colors.pink)
+                            ? ColorScheme.fromSeed(seedColor: Colors.teal)
                                 .primary
-                            : ColorScheme.fromSeed(seedColor: Colors.teal)
+                            : ColorScheme.fromSeed(seedColor: Colors.pink)
                                 .primary,
                       )),
                       child: const SizedBox(
